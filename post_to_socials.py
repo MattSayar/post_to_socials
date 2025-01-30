@@ -1,14 +1,22 @@
+# Standard library imports
 import os
-import webbrowser
 import sys
+import webbrowser
 from urllib.parse import quote
-import requests
-import json
 from datetime import datetime, timezone
 import re
-from typing import List, Dict
 import termios
 import tty
+from io import BytesIO
+
+# Third-party imports
+import requests
+import json
+from bs4 import BeautifulSoup
+from PIL import Image
+
+# Typing imports
+from typing import List, Dict
 
 # ANSI color codes
 GREEN = '\033[92m'
@@ -78,9 +86,74 @@ def post_to_bluesky(link):
                 ],
             })
         return facets
+    
+    def fetch_embed_url_card(access_token: str, url: str) -> Dict:
+        # the required fields for every embed card
+        card = {
+            "uri": url,
+            "title": "",
+            "description": "",
+        }
+
+        # fetch the HTML
+        resp = requests.get(url)
+        resp.raise_for_status()
+        soup = BeautifulSoup(resp.text, "html.parser")
+
+        # parse out the "og:title" and "og:description" HTML meta tags
+        title_tag = soup.find("meta", property="og:title")
+        if title_tag:
+            card["title"] = title_tag["content"]
+        description_tag = soup.find("meta", property="og:description")
+        if description_tag:
+            card["description"] = description_tag["content"]
+
+        # if there is an "og:image" HTML meta tag, fetch and upload that image
+        image_tag = soup.find("meta", property="og:image")
+        if image_tag:
+            img_url = image_tag["content"]
+            # naively turn a "relative" URL (just a path) into a full URL, if needed
+            if "://" not in img_url:
+                img_url = url + img_url
+            resp = requests.get(img_url)
+            resp.raise_for_status()
+
+            # Determine the MIME type based on the image URL
+            if img_url.endswith(".png"):
+                image_mimetype = "image/png"
+            elif img_url.endswith(".jpg") or img_url.endswith(".jpeg"):
+                image_mimetype = "image/jpeg"
+
+            # Resize the image if it's too large for BlueSky
+            if len(resp.content) > 1000000:
+                image = Image.open(BytesIO(resp.content))
+                image.thumbnail((1024, 1024))  # Resize to fit within 1024x1024
+                buffer = BytesIO()
+                image.save(buffer, format=image.format)
+                image_content = buffer.getvalue()
+            else:
+                image_content = resp.content
+
+            blob_resp = requests.post(
+                "https://bsky.social/xrpc/com.atproto.repo.uploadBlob",
+                headers={
+                    "Content-Type": image_mimetype,
+                    "Authorization": "Bearer " + access_token,
+                },
+                data=image_content,
+            )
+            blob_resp.raise_for_status()
+            card["thumb"] = blob_resp.json()["blob"]
+
+        return {
+            "$type": "app.bsky.embed.external",
+            "external": card,
+        }
 
     post["text"] = post_text
     post["facets"] = parse_facets(post["text"])
+    post["embed"] = fetch_embed_url_card(session["accessJwt"], link)
+    print(post["embed"])
 
     resp = requests.post(
         "https://bsky.social/xrpc/com.atproto.repo.createRecord",
