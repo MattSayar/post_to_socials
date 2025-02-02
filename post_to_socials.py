@@ -174,7 +174,8 @@ def post_to_hackernews(link):
     input(f"{YELLOW}Press Enter to confirm you posted...{RESET}")
     print(f"{GREEN}Hacker News post 'confirmed'.{RESET}")
 
-# Posts API: https://learn.microsoft.com/en-us/linkedin/marketing/community-management/shares/posts-api?view=li-lms-2025-01&tabs=http
+# free Zapier automation: 
+# https://zapier.com/shared/6d07ead8e8fec1d6edb64448d953572b46c006f0
 def post_to_linkedin(link):
     print(f"{BLUE}Opening LinkedIn feed...{RESET}")
     webbrowser.open(f"https://www.linkedin.com/feed/")
@@ -230,7 +231,7 @@ def main():
         post_to_bluesky(link)
     if prompt_user(f"{PURPLE}Do you want to post to Hackernews? Press Enter to continue or space to skip") in ["\r", "\n"]:
         post_to_hackernews(link)
-    if prompt_user(f"{PURPLE}Do you want to post to LinkedIn? Press Enter to continue or space to skip") in ["\r", "\n"]:
+    if prompt_user(f"{PURPLE}Do you want to post to LinkedIn? Not recommended if Zapier is set up! Press Enter to continue or space to skip") in ["\r", "\n"]:
         post_to_linkedin(link)
     if prompt_user(f"{PURPLE}Do you want to post to Reddit? Press Enter to continue or space to skip") in ["\r", "\n"]:
         post_to_reddit(link)
