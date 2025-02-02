@@ -123,3 +123,4 @@ cython_debug/
 
 # Custom
 bsky.txt
+.DS_Store
