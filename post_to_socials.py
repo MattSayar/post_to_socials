@@ -118,10 +118,20 @@ def post_to_bluesky(link):
             resp = requests.get(img_url)
             resp.raise_for_status()
 
-            # Determine the MIME type based on the image URL
-            if img_url.endswith(".png"):
+            # Determine the MIME type based on the image URL (case-insensitive)
+            img_url_lower = img_url.lower()
+            if img_url_lower.endswith(".png"):
                 image_mimetype = "image/png"
-            elif img_url.endswith(".jpg") or img_url.endswith(".jpeg"):
+            elif img_url_lower.endswith(".jpg") or img_url_lower.endswith(".jpeg"):
+                image_mimetype = "image/jpeg"
+            elif img_url_lower.endswith(".gif"):
+                image_mimetype = "image/gif"
+            elif img_url_lower.endswith(".webp"):
+                image_mimetype = "image/webp"
+            elif img_url_lower.endswith(".svg"):
+                image_mimetype = "image/svg+xml"
+            else:
+                # Default to JPEG if we can't determine the type
                 image_mimetype = "image/jpeg"
 
             # Resize the image if it's too large for BlueSky
@@ -153,7 +163,6 @@ def post_to_bluesky(link):
     post["text"] = post_text
     post["facets"] = parse_facets(post["text"])
     post["embed"] = fetch_embed_url_card(session["accessJwt"], link)
-    print(post["embed"])
 
     resp = requests.post(
         "https://bsky.social/xrpc/com.atproto.repo.createRecord",
