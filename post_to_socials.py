@@ -1,3 +1,11 @@
+# /// script
+# dependencies = [
+#   "requests",
+#   "beautifulsoup4",
+#   "pillow",
+# ]
+# ///
+
 # Standard library imports
 import os
 import sys
