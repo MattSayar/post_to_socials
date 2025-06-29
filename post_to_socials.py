@@ -186,8 +186,33 @@ def post_to_bluesky(link):
     print(f"{GREEN}BlueSky post confirmed.{RESET}")
 
 def post_to_hackernews(link):
-    print(f"{BLUE}Opening Hacker News submit page...{RESET}")
-    webbrowser.open("https://news.ycombinator.com/submit")
+    print(f"{BLUE}Fetching page title for Hacker News...{RESET}")
+    
+    # Fetch the page title
+    title = ""
+    try:
+        resp = requests.get(link, timeout=10)
+        resp.raise_for_status()
+        soup = BeautifulSoup(resp.text, "html.parser")
+        
+        # Try to get the og:title first, then fall back to regular title
+        og_title = soup.find("meta", property="og:title")
+        if og_title and og_title.get("content"):
+            title = og_title["content"]
+        elif soup.title and soup.title.string:
+            title = soup.title.string.strip()
+    except Exception as e:
+        print(f"{YELLOW}Could not fetch title automatically. You'll need to enter it manually.{RESET}")
+    
+    # URL encode the parameters
+    encoded_url = quote(link, safe='')
+    encoded_title = quote(title, safe='')
+    
+    # Construct the Hacker News submit URL with parameters
+    hn_url = f"https://news.ycombinator.com/submitlink?u={encoded_url}&t={encoded_title}"
+    
+    print(f"{BLUE}Opening Hacker News submit page with pre-filled data...{RESET}")
+    webbrowser.open(hn_url)
     input(f"{YELLOW}Press Enter to confirm you posted...{RESET}")
     print(f"{GREEN}Hacker News post 'confirmed'.{RESET}")
 
