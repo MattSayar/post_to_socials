@@ -7,6 +7,22 @@ This hot new script will literally save minutes of your life! It's just a simple
 * Tildes
 
 # Usage
-Install dependencies and run from the command line. Store a BlueSky [App Password](https://bsky.app/settings/app-passwords) in a file in the same directory called `bsky.txt`. 
+Store a BlueSky [App Password](https://bsky.app/settings/app-passwords) in a file in the same directory called `bsky.txt`.
 
-Run like `python3 post_to_socials.py https://example.com`
+## Running with uv (recommended)
+```bash
+uv run post_to_socials.py https://example.com
+```
+
+## Running with Python
+Install dependencies first:
+```bash
+pip install requests beautifulsoup4 pillow
+```
+
+Then run:
+```bash
+python3 post_to_socials.py https://example.com
+# or
+./post_to_socials.py https://example.com
+```
